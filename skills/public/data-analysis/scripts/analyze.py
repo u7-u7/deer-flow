@@ -40,11 +40,16 @@ except ImportError:
 # Cache directory for persistent DuckDB databases
 CACHE_DIR = os.path.join(tempfile.gettempdir(), ".data-analysis-cache")
 
+# Bound SQL parameters still undergo DuckDB's path-glob expansion. Escape the
+# whole local path, including directory names, to select only the requested CSV.
+_CSV_LITERAL_PATH_ESCAPES = str.maketrans({"[": "[[]", "*": "[*]", "?": "[?]"})
+
 
 def compute_files_hash(files: list[str]) -> str:
     """Hash the ordered names and contents that determine the loaded table map."""
-    # A new namespace also prevents reuse of maps built by the old allocator.
-    hasher = hashlib.sha256(b"data-analysis-inputs-v2\0")
+    # Older generations can contain rows selected by path-glob expansion rather
+    # than the literal input whose name and contents were hashed.
+    hasher = hashlib.sha256(b"data-analysis-inputs-v3\0")
     for file_path in files:
         name = os.fsencode(os.path.basename(file_path))
         hasher.update(len(name).to_bytes(8, "big"))
@@ -308,7 +313,7 @@ def _load_csv(
             CREATE TABLE {_quote_identifier(table_name)} AS
             SELECT * FROM read_csv_auto(?)
         """,
-            [file_path],
+            [file_path.translate(_CSV_LITERAL_PATH_ESCAPES)],
         )
         table_map[alias] = table_name
         row_count = con.execute(

@@ -37,6 +37,13 @@ with regular expressions: unique original names resolve through temporary views
 over canonical tables in the main schema, including on read-only cache hits.
 Keep these views connection-local and preserve normal CTE shadowing.
 
+CSV inputs are literal local paths. Escape DuckDB glob metacharacters (`[`, `*`,
+`?`) in the entire bound CSV path, including directory names; SQL binding alone
+does not disable path expansion. The v3 input-hash namespace prevents reuse of
+older generations that may contain a different matching file's rows. Keep real
+DuckDB decoy-file and cache-rebuild coverage in
+`tests/skills/test_data_analysis_literal_csv_paths.py`.
+
 Prepare DuckDB and openpyxl explicitly in the execution environment. Missing
 packages produce setup instructions without launching installers; keep those
 import-failure regressions offline in the root skill tests.

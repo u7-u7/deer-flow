@@ -1988,6 +1988,10 @@ Users can explicitly activate an enabled skill for a single turn by starting the
 
 Data-analysis Markdown exports escape pipes and backslashes in column names and values, and render cell line breaks as `<br>` so multiline data stays within its table cell.
 
+Data-analysis CSV inputs are literal paths: `report[1].csv` reads that file,
+not a matching `report1.csv`. Earlier cache generations rebuild once to avoid
+reusing rows loaded through wildcard expansion; active readers keep their snapshots.
+
 Data-analysis JSON exports require unique result column names. For joins that
 return repeated names such as `id`, use SQL aliases (`AS left_id`, `AS right_id`)
 before exporting. Duplicate names cause an error before the output file is opened,

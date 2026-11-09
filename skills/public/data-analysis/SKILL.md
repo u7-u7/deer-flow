@@ -28,6 +28,12 @@ If either package is missing, the script exits with a setup instruction; it does
 - Export query results to CSV, JSON, or Markdown
 - Handle large files efficiently with DuckDB's columnar engine
 
+CSV input paths are literal, not wildcard patterns. Names such as
+`report[1].csv` select that exact file even when `report1.csv` also exists.
+Earlier analysis caches rebuild once to discard results that may have been
+loaded from a different glob-matching file; existing generations are retained
+for active readers.
+
 ## Workflow
 
 ### Step 1: Understand Requirements
